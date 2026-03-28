@@ -1,0 +1,12 @@
+🚨 3. Pathological Case (Risk)
+Baseline FHR (LB): 165
+Variability (ASTV %): 90
+Accelerations (AC): 0.000
+Decelerations (DL): 0.003
+Uterine Contractions (UC): 0.004
+
+👉 Expected Output: Pathological
+
+stimulates graph changes frequently
+padding box chatbot history doesn't fitnormal
+chatbot doesn't work properly

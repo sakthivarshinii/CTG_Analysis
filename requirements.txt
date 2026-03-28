@@ -1,5 +1,9 @@
-Flask
+fastapi
+uvicorn[standard]
 scikit-learn
 pandas
 ucimlrepo
-numpy
+xgboost
+shap
+sqlalchemy
+pydantic
