@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fetal Health AI Predictor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+    
+    <div class="container">
+        <header class="header text-center">
+            <h1>Fetal Health AI Predictor</h1>
+            <p>Advanced Classification using CTG Data</p>
+        </header>
+
+        <main class="dashboard">
+            <div class="card glass-panel form-panel">
+                <h2>CTG Parameters</h2>
+                <form id="prediction-form">
+                    <div class="input-group">
+                        <label for="LB">Baseline FHR (LB)</label>
+                        <input type="number" step="0.1" id="LB" name="LB" placeholder="e.g. 120" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="ASTV">Variability (ASTV %)</label>
+                        <input type="number" step="0.1" id="ASTV" name="ASTV" placeholder="e.g. 73" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="AC">Accelerations (AC per sec)</label>
+                        <input type="number" step="0.001" id="AC" name="AC" placeholder="e.g. 0.000" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="DL">Decelerations (DL per sec)</label>
+                        <input type="number" step="0.001" id="DL" name="DL" placeholder="e.g. 0.000" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="UC">Uterine Contractions (UC per sec)</label>
+                        <input type="number" step="0.001" id="UC" name="UC" placeholder="e.g. 0.000" required>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary" id="predict-btn">Analyze Data</button>
+                    <div id="loading" class="hidden">Analyzing...</div>
+                </form>
+            </div>
+
+            <div class="outputs">
+                <div class="card glass-panel result-panel">
+                    <h2>Prediction Result</h2>
+                    <div id="result-placeholder" class="placeholder">
+                        <p>Submit data to see results</p>
+                    </div>
+                    <div id="result-content" class="hidden">
+                        <div class="result-highlight">
+                            <span id="pred-value" class="badge">--</span>
+                        </div>
+                        <div class="result-stats">
+                            <div class="stat-box">
+                                <span>Confidence</span>
+                                <h3 id="conf-value">--</h3>
+                            </div>
+                        </div>
+                        <div class="message-box">
+                            <p id="msg-value">--</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card glass-panel metrics-panel">
+                    <h2>Model Insights & Metrics</h2>
+                    <p id="accuracy-display">Model Accuracy: Loading...</p>
+                    
+                    <div class="chart-container">
+                        <canvas id="featureChart"></canvas>
+                    </div>
+                    
+                    <div class="matrix-container" id="matrix-container">
+                        <h3>Confusion Matrix</h3>
+                        <div id="matrix-grid" class="matrix-grid"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
