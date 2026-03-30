@@ -7,3 +7,5 @@ xgboost
 shap
 sqlalchemy
 pydantic
+streamlit
+requests

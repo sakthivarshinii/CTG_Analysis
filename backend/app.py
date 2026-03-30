@@ -13,12 +13,11 @@ import shap
 # sys path for imports if needed
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from database.db import SessionLocal, PatientRecord, init_db
+from database.db import SessionLocal, PatientRecord, Doctor, get_password_hash, init_db
 
 app = FastAPI(title="Fetal Health Decision Support API")
 
-# Mount frontend
-app.mount("/static", StaticFiles(directory="frontend"), name="static")
+# Removed static frontend mount
 
 # Load models
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -63,10 +62,20 @@ class CTGInput(BaseModel):
     DL: float
     UC: float
 
-# Root
-@app.get("/")
-def read_index():
-    return FileResponse('frontend/index.html')
+# API endpoints below
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+@app.post("/api/login")
+def login(data: LoginRequest, db: Session = Depends(get_db)):
+    doctor = db.query(Doctor).filter(Doctor.username == data.username).first()
+    if not doctor or doctor.password_hash != get_password_hash(data.password):
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+    
+    # For a prototype, return a simple static token
+    return {"token": "authenticated_doctor_token", "username": doctor.username}
 
 @app.post("/api/predict")
 def predict(data: CTGInput, db: Session = Depends(get_db)):
@@ -167,6 +176,43 @@ class ChatInput(BaseModel):
 @app.post("/api/chat")
 def chat(data: ChatInput):
     msg = data.message.lower()
+    
+    if "summarize" in msg or "condition" in msg:
+        summary = f"The patient currently has a {data.prediction} prediction. "
+        summary += f"Key metrics include a baseline heart rate of {data.features.get('LB', 'N/A')} bpm, "
+        summary += f"abnormal short term variability of {data.features.get('ASTV', 'N/A')}%, "
+        summary += f"and {data.features.get('AC', 'N/A')} accelerations. "
+        
+        if data.prediction.lower() == "pathological":
+            summary += "Immediate medical attention is recommended due to pathological indicators."
+        elif data.prediction.lower() == "suspect":
+            summary += "Close monitoring is advised as some metrics fall outside typical normal ranges."
+        else:
+            summary += "The overall condition appears stable."
+            
+        return {"response": summary}
+        
+    if "abnormal" in msg or "explain" in msg:
+        abnormal = []
+        if data.features.get('LB', 140) < 110:
+            abnormal.append(f"low baseline heart rate ({data.features.get('LB')} bpm)")
+        elif data.features.get('LB', 140) > 160:
+            abnormal.append(f"high baseline heart rate ({data.features.get('LB')} bpm)")
+            
+        if data.features.get('ASTV', 0) > 30:
+            abnormal.append(f"elevated abnormal short-term variability ({data.features.get('ASTV')}%)")
+            
+        if data.features.get('DL', 0) > 0.005:
+            abnormal.append(f"presence of late decelerations ({data.features.get('DL')})")
+
+        if abnormal:
+            return {"response": "We detected the following abnormal values: " + ", ".join(abnormal) + ". These strongly influence the overall classification."}
+        else:
+            if data.prediction.lower() == "normal":
+                return {"response": "Based on the provided metrics, there are no distinctly abnormal values. The fetal heart rate and variability are within expected ranges."}
+            else:
+                return {"response": f"While individual values might appear near borderline, the ensemble model flagged the combined pattern as {data.prediction}."}
+
     if "why" in msg and "pathological" in data.prediction.lower():
         return {"response": f"The prediction is Pathological because features (especially FHR Variability and Decelerations) indicate high fetal distress patterns in our ML ensemble. Your values: {data.features}"}
     elif "normal" in data.prediction.lower():
