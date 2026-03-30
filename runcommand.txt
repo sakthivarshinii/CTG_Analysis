@@ -1,1 +1,5 @@
 uv run streamlit run streamlit_app.py
+
+credentials for login:
+username: dr_smith
+password: password123
